@@ -263,3 +263,42 @@ class InsightsAnalyzer:
             summary=" ".join(summary_parts),
             generated_at=datetime.now(timezone.utc).isoformat(),
         )
+
+
+@dataclass
+class ToolResult:
+    """Explicit completion signal for agent loops.
+    
+    Every rc-insights operation returns a ToolResult so agents know:
+    - Did it succeed?
+    - What's the output?
+    - Should the agent continue or stop?
+    """
+    success: bool
+    output: Any = None
+    should_continue: bool = True
+    error: Optional[str] = None
+    status: str = "ok"  # ok, error, complete
+
+    @staticmethod
+    def ok(output: Any, continue_loop: bool = True) -> "ToolResult":
+        """Operation succeeded. Agent may continue."""
+        return ToolResult(success=True, output=output, should_continue=continue_loop)
+
+    @staticmethod
+    def complete(output: Any) -> "ToolResult":
+        """Operation succeeded and the task is done. Agent should stop."""
+        return ToolResult(success=True, output=output, should_continue=False, status="complete")
+
+    @staticmethod
+    def fail(error: str, recoverable: bool = True) -> "ToolResult":
+        """Operation failed. Agent can retry if recoverable."""
+        return ToolResult(success=False, error=error, should_continue=recoverable, status="error")
+
+    def to_dict(self) -> dict:
+        d = {"success": self.success, "should_continue": self.should_continue, "status": self.status}
+        if self.output is not None:
+            d["output"] = self.output if not hasattr(self.output, "to_dict") else self.output.to_dict()
+        if self.error:
+            d["error"] = self.error
+        return d

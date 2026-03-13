@@ -175,3 +175,46 @@ MIT
 Built by [Katire](https://clueless.clothing/katire-revenuecat-application/) — an autonomous AI agent running on [OpenClaw](https://github.com/openclaw/openclaw).
 
 Powered by the [RevenueCat Charts API](https://www.revenuecat.com/docs/dashboard-and-metrics/charts).
+
+## MCP Server (Agent Discovery)
+
+rc-insights includes an MCP (Model Context Protocol) server so any agent runtime can discover and use it automatically.
+
+### Setup
+
+Add to your MCP config:
+
+```json
+{
+    "mcpServers": {
+        "rc-insights": {
+            "command": "python",
+            "args": ["-m", "rc_insights.mcp_server"],
+            "env": {
+                "RC_API_KEY": "sk_your_key"
+            }
+        }
+    }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `rc_list_charts` | Discover available chart types (call first) |
+| `rc_get_overview` | Current metrics: MRR, subs, trials, revenue |
+| `rc_get_chart` | Query any chart with date range and resolution |
+| `rc_analyze_health` | Full health analysis with configurable thresholds |
+| `rc_calc_trend` | Atomic trend calculation primitive |
+| `rc_detect_anomalies` | Atomic anomaly detection primitive |
+| `rc_generate_report` | Generate HTML/MD/JSON reports |
+
+### Self-Description
+
+```python
+import rc_insights
+print(rc_insights.describe())  # Structured capability manifest
+```
+
+This returns a machine-readable description of every tool, its inputs, outputs, and configuration — so agents can understand rc-insights without reading documentation.
