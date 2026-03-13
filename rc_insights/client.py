@@ -274,6 +274,32 @@ class ChartsClient:
         data = self._get(f"/projects/{self.project_id}/charts/{name}", params)
         return ChartResponse.from_api(name, data)
 
+
+    def list_available_charts(self) -> list[str]:
+        """Discover available chart names from the API.
+        
+        Uses a lightweight probe to get the list of valid chart names,
+        rather than relying on a hardcoded enum. This means new charts
+        added to the API work automatically.
+        """
+        if not self.project_id:
+            self.discover_project_id()
+        try:
+            # Intentionally request an invalid chart to get the valid list
+            self._get(f"/projects/{self.project_id}/charts/__discovery_probe")
+            return []  # Shouldn't reach here
+        except RuntimeError as e:
+            msg = str(e)
+            # Parse valid names from error message
+            if "must be one of" in msg:
+                import re
+                match = re.search(r"must be one of (.+)", msg)
+                if match:
+                    names = [n.strip() for n in match.group(1).split(',')]
+                    return [n for n in names if n]
+            # Fallback to enum values
+            return [c.value for c in ChartName]
+
     def get_health_charts(self, days: int = 30) -> dict[str, ChartResponse]:
         start = (date.today() - timedelta(days=days)).isoformat()
         charts = {}

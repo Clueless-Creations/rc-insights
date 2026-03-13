@@ -82,10 +82,42 @@ class AnalysisReport:
 
 
 class InsightsAnalyzer:
-    """Analyzes RevenueCat chart data and produces actionable insights."""
+    """Analyzes RevenueCat chart data and produces actionable insights.
+    
+    Thresholds are configurable so agents can adjust sensitivity:
+        analyzer = InsightsAnalyzer(churn_critical=12, mrr_growth_threshold=8)
+    """
+
+    def __init__(
+        self,
+        mrr_growth_threshold: float = 10,
+        mrr_decline_threshold: float = -5,
+        mrr_critical_decline: float = -15,
+        churn_critical: float = 10,
+        churn_increase_threshold: float = 20,
+        churn_improve_threshold: float = -10,
+        trial_surge_threshold: float = 15,
+        trial_decline_threshold: float = -15,
+        trial_conversion_low: float = 20,
+        trial_conversion_high: float = 40,
+        actives_growth_threshold: float = 5,
+        anomaly_std_threshold: float = 2.0,
+    ):
+        self.mrr_growth_threshold = mrr_growth_threshold
+        self.mrr_decline_threshold = mrr_decline_threshold
+        self.mrr_critical_decline = mrr_critical_decline
+        self.churn_critical = churn_critical
+        self.churn_increase_threshold = churn_increase_threshold
+        self.churn_improve_threshold = churn_improve_threshold
+        self.trial_surge_threshold = trial_surge_threshold
+        self.trial_decline_threshold = trial_decline_threshold
+        self.trial_conversion_low = trial_conversion_low
+        self.trial_conversion_high = trial_conversion_high
+        self.actives_growth_threshold = actives_growth_threshold
+        self.anomaly_std_threshold = anomaly_std_threshold
 
     @staticmethod
-    def _trend(values: list[float], window: int = 7) -> tuple[float, float]:
+    def calc_trend(values: list[float], window: int = 7) -> tuple[float, float]:
         """(change_pct, recent_avg) using rolling window comparison."""
         if len(values) < 2:
             return 0.0, values[-1] if values else 0.0
@@ -98,7 +130,7 @@ class InsightsAnalyzer:
         return ((recent - previous) / abs(previous)) * 100, recent
 
     @staticmethod
-    def _anomalies(values: list[float], threshold: float = 2.0) -> list[tuple[int, float, str]]:
+    def detect_anomalies(values: list[float], threshold: float = 2.0) -> list[tuple[int, float, str]]:
         if len(values) < 10:
             return []
         mean = sum(values) / len(values)
@@ -113,17 +145,17 @@ class InsightsAnalyzer:
         values = chart.primary_values
         if not values:
             return insights
-        change, current = self._trend(values)
-        if change > 10:
+        change, current = self.calc_trend(values)
+        if change > self.mrr_growth_threshold:
             insights.append(Insight("MRR Growing Strong", f"MRR up {change:.1f}% recently. Current ~${current:,.0f}.",
                                     Severity.POSITIVE, InsightCategory.REVENUE, "mrr", current, change_pct=change,
                                     recommendation="Monetization is working. Consider investing more in acquisition."))
-        elif change < -5:
-            sev = Severity.CRITICAL if change < -15 else Severity.WARNING
+        elif change < self.mrr_decline_threshold:
+            sev = Severity.CRITICAL if change < self.mrr_critical_decline else Severity.WARNING
             insights.append(Insight("MRR Declining", f"MRR down {abs(change):.1f}%. Current ~${current:,.0f}.",
                                     sev, InsightCategory.REVENUE, "mrr", current, change_pct=change,
                                     recommendation="Investigate churn drivers. Check app updates, pricing changes, or store issues."))
-        for idx, val, direction in self._anomalies(values)[-3:]:
+        for idx, val, direction in self.detect_anomalies(values)[-3:]:
             dates = chart.primary_dates
             d = dates[idx] if idx < len(dates) else f"point {idx}"
             insights.append(Insight(f"MRR Anomaly: {direction.title()} on {d}",
@@ -137,17 +169,17 @@ class InsightsAnalyzer:
         values = chart.primary_values
         if not values:
             return insights
-        change, current = self._trend(values)
+        change, current = self.calc_trend(values)
         avg = sum(values) / len(values)
-        if avg > 10:
+        if avg > self.churn_critical:
             insights.append(Insight("High Churn Rate", f"Average churn is {avg:.1f}%, above healthy threshold.",
                                     Severity.CRITICAL, InsightCategory.RETENTION, "churn", current,
                                     recommendation="Prioritize retention: improve onboarding, add rescue offers, check involuntary churn."))
-        elif change > 20:
+        elif change > self.churn_increase_threshold:
             insights.append(Insight("Churn Trending Up", f"Churn rate trending up {change:.1f}% period-over-period.",
                                     Severity.WARNING, InsightCategory.RETENTION, "churn", current, change_pct=change,
                                     recommendation="Check recent app changes and store reviews for cancellation patterns."))
-        elif change < -10:
+        elif change < self.churn_improve_threshold:
             insights.append(Insight("Churn Improving", f"Churn trending down {abs(change):.1f}% — retention improving.",
                                     Severity.POSITIVE, InsightCategory.RETENTION, "churn", current, change_pct=change))
         return insights
@@ -157,11 +189,11 @@ class InsightsAnalyzer:
         if trials:
             values = trials.primary_values
             if values:
-                change, current = self._trend(values)
-                if change > 15:
+                change, current = self.calc_trend(values)
+                if change > self.trial_surge_threshold:
                     insights.append(Insight("Trial Starts Surging", f"New trials up {change:.1f}%. Strong top-of-funnel.",
                                             Severity.POSITIVE, InsightCategory.GROWTH, "trials_new", current, change_pct=change))
-                elif change < -15:
+                elif change < self.trial_decline_threshold:
                     insights.append(Insight("Trial Starts Declining", f"New trials down {abs(change):.1f}%.",
                                             Severity.WARNING, InsightCategory.GROWTH, "trials_new", current, change_pct=change,
                                             recommendation="Review paywall conversion, ASO, and ad campaigns."))
@@ -169,11 +201,11 @@ class InsightsAnalyzer:
             values = conversion.primary_values
             if values:
                 avg = sum(values) / len(values)
-                if avg > 0 and avg < 20:
+                if avg > 0 and avg < self.trial_conversion_low:
                     insights.append(Insight("Low Trial Conversion", f"Trial conversion averaging {avg:.1f}%.",
                                             Severity.WARNING, InsightCategory.CONVERSION, "trial_conversion", avg,
                                             recommendation="Optimize trial experience: onboarding, value reminders, trial length."))
-                elif avg >= 40:
+                elif avg >= self.trial_conversion_high:
                     insights.append(Insight("Strong Trial Conversion", f"Trial conversion at {avg:.1f}% — excellent.",
                                             Severity.POSITIVE, InsightCategory.CONVERSION, "trial_conversion", avg))
         return insights
@@ -183,11 +215,11 @@ class InsightsAnalyzer:
         values = chart.primary_values
         if not values:
             return insights
-        change, current = self._trend(values)
-        if change > 5:
+        change, current = self.calc_trend(values)
+        if change > self.actives_growth_threshold:
             insights.append(Insight("Subscriber Base Growing", f"Active subscriptions up {change:.1f}%.",
                                     Severity.POSITIVE, InsightCategory.GROWTH, "actives", current, change_pct=change))
-        elif change < -5:
+        elif change < -self.actives_growth_threshold:
             insights.append(Insight("Subscriber Base Shrinking", f"Active subscriptions down {abs(change):.1f}%.",
                                     Severity.WARNING, InsightCategory.GROWTH, "actives", current, change_pct=change,
                                     recommendation="Churn may be outpacing acquisition. Focus retention before scaling."))
