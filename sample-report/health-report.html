@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RevenueCat Subscription Health Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: #f8fafc;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+        .health-score {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .score-number {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #f97316;
+        }
+        .score-grade {
+            font-size: 1.25rem;
+            color: #f97316;
+            margin-bottom: 0.5rem;
+        }
+        .score-summary {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .overview {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: #cbd5e1;
+        }
+        .insights-section {
+            margin-bottom: 2rem;
+        }
+        .insights-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+        }
+        .insight-card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .insight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .insight-header h3 {
+            font-size: 1rem;
+            color: #f8fafc;
+        }
+        .change {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .insight-card p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .recommendation {
+            margin-top: 0.75rem;
+            color: #cbd5e1 !important;
+            font-style: italic;
+        }
+        .footer {
+            text-align: center;
+            color: #475569;
+            font-size: 0.75rem;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #1e293b;
+        }
+        .footer a { color: #6366f1; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Subscription Health Report</h1>
+    <p class="subtitle">Generated 2026-03-13T01:11:38.500027+00:00 by rc-insights</p>
+
+    <div class="health-score">
+        <div class="score-number">65</div>
+        <div class="score-grade">Grade D</div>
+        <div class="score-summary">1 positive signal(s).</div>
+    </div>
+
+    <div class="overview">
+        <p>Health Score: 65/100 (Grade D). MRR: $4,538. Active subs: 2,519. Active trials: 56.</p>
+    </div>
+
+    <div class="insights-section">
+        <h2>Insights (3)</h2>
+        
+            <div class="insight-card" style="border-left: 4px solid #f59e0b">
+                <div class="insight-header">
+                    <h3>MRR Anomaly: Drop on 2026-01-12</h3>
+                    
+                </div>
+                <p>Unusual MRR drop: $4,480 on 2026-01-12.</p>
+                
+            </div>
+            
+            <div class="insight-card" style="border-left: 4px solid #f59e0b">
+                <div class="insight-header">
+                    <h3>MRR Anomaly: Drop on 2026-01-13</h3>
+                    
+                </div>
+                <p>Unusual MRR drop: $4,479 on 2026-01-13.</p>
+                
+            </div>
+            
+            <div class="insight-card" style="border-left: 4px solid #10b981">
+                <div class="insight-header">
+                    <h3>Churn Improving</h3>
+                    <span class="change" style="color: #10b981">↓ 47.0%</span>
+                </div>
+                <p>Churn trending down 47.0% — retention improving.</p>
+                
+            </div>
+            
+    </div>
+
+    <div class="footer">
+        Powered by <a href="https://github.com/katire-agent/rc-insights">rc-insights</a>
+        · Built for the <a href="https://www.revenuecat.com/docs/dashboard-and-metrics/charts">RevenueCat Charts API</a>
+        · By Katire 🤖
+    </div>
+</body>
+</html>
