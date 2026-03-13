@@ -1,84 +1,120 @@
 # Process Log — RevenueCat Charts API Take-Home Assignment
 
-**Agent:** Katire (autonomous AI agent)  
-**Operator:** Eduardo Muth Martinez  
-**Runtime:** OpenClaw · Claude Opus 4.6  
-**Started:** 2026-03-12 21:49 UTC  
-**Deadline:** 2026-03-13 morning (CDT)
+**Agent:** Katire (autonomous AI agent)
+**Operator:** Eduardo Muth Martinez
+**Runtime:** OpenClaw · Claude Opus 4.6
+**Started:** 2026-03-12 21:49 UTC
+**Tools used:** OpenClaw, Claude Opus 4.6, RevenueCat Charts API V2, ElevenLabs TTS, OpenAI gpt-image-1, GitHub API, Notion API, ffmpeg
 
 ---
 
-## Timeline
+## Phase 1: Research (21:49-21:52 UTC)
 
-### 2026-03-12 21:49 UTC — Assignment Received
-- Received PDF and email from Angela at RevenueCat
-- Assignment: Drive awareness and adoption of RevenueCat's Charts API
-- Three deliverables: Tool, Content Package, Growth Campaign
-- API key provided: read-only Charts V2 for Dark Noise app
-
-### 2026-03-12 21:50-21:52 UTC — Research Phase
 - Fetched and analyzed RevenueCat Charts documentation
-- Reviewed all 25+ chart types available in the dashboard
-- Reviewed API V2 authentication docs and OAuth scopes
-- Identified charts_metrics:charts:read and charts_metrics:overview:read as relevant scopes
-- Reviewed MCP tools reference (26 tools, none for Charts — confirming Charts API is separate)
-- Reviewed Charts v3 (Beta) docs — real-time reporting, new subscription model
-- Charts API endpoint docs not yet publicly detailed — this is a NEW API
+- Reviewed API V2 authentication, OAuth scopes, MCP tools reference
+- Identified Charts API as new and under-documented publicly
+- Reviewed Charts v3 (Beta) real-time reporting docs
+- Assessed sandbox constraints: no Python, no curl, no network initially
 
-### 2026-03-12 21:52 UTC — Strategic Decision: What to Build
-**Choice: rc-insights** — Agent-ready Python CLI + library for RevenueCat Charts API
+**Key decision:** Build a Python CLI + library over a web app. Most useful form factor for both developers AND agents. Web apps need hosting; Python packages work anywhere.
 
-Why this tool:
-1. Charts API is new and under-documented — clean SDK + analysis = highest value
-2. Agents are RevenueCat's emerging customer segment — tool is agent-native
-3. Indie devs need actionable insights, not just data — strategic analysis included
-4. Open-source creates lasting community value
+## Phase 2: Initial Build (21:53-22:30 UTC)
 
-### 2026-03-12 21:53 UTC — Build Phase Begins
-Execution order: Tool → Blog → Social → Video Script → Campaign → Submission
+- Built rc-insights v0.1.0: 4 Python modules, 3 example scripts
+- Wrote blog post (1,689 words), 5 social posts, video script
+- Designed growth campaign with 5 communities and $100 budget
+- Created Notion submission page
 
-### 2026-03-12 21:53-22:15 UTC — Tool Build
-- Built complete Python package: rc_insights (4 modules, ~1,250 lines)
-  - client.py: Typed Charts API client with auto-discovery, segmentation, convenience methods
-  - analyzer.py: Trend detection (rolling window), anomaly flagging (z-score), health scoring
-  - report.py: HTML dashboard, Markdown, and JSON report generators
-  - cli.py: Click CLI with Rich terminal UI (overview, health, chart, report commands)
-- Created 3 example scripts: quick health check, agent pipeline, daily Slack report
-- Created setup.py, requirements.txt, README.md, LICENSE (MIT)
+**Constraint:** Sandbox had no Python runtime or network. Built from documentation patterns.
 
-### 2026-03-12 22:15-22:30 UTC — Content Creation
-- Wrote 1,689-word blog post covering problem, solution, architecture, agent use case, health score deep-dive
-- Wrote 5 X/Twitter posts from different angles (problem, technical, agent, insight, CTA)
-- Wrote 2-minute video tutorial script with 3 production options
+## Phase 3: Environment Upgrade + Live Testing (01:07-01:15 UTC)
 
-### 2026-03-12 22:30-22:45 UTC — Growth Campaign
-- Designed 5-community campaign: RC Forum, Reddit (2 subs), Twitter/X, HN, RC Discord
-- Created specific post copy for each community
-- Allocated $100 budget: $40 Reddit, $35 Twitter, $15 OG images, $10 domain
-- Built measurement plan with primary/secondary metrics and UTM tracking strategy
-- Created campaign timeline (T+0h through T+168h)
+- Sandbox upgraded with Python, curl, git, API keys
+- Tested real Charts API endpoints, discovered actual response schema
+- Rewrote client to match real API (zero dependencies, stdlib only)
+- Verified against live Dark Noise data: MRR $4,538, 2,519 active subs, 56 trials
+- Generated sample reports from real data
+- Pushed to GitHub: github.com/Clueless-Creations/rc-insights
 
-### 2026-03-12 22:45 UTC — Assembly
-- Created submission.md with all deliverable links and process summary
-- Verified blog post meets 1,500+ word requirement (1,689 words)
-- Verified all required deliverables are complete
+**Key discovery:** Charts API response uses unix timestamps in `cohort` field, `measure` index for multi-metric charts, `values` array (not `data`). 21 available chart types discovered via API error message pattern.
 
-## Key Decisions Log
+## Phase 4: Agent-Native Self-Evaluation (02:04-02:15 UTC)
 
-1. **Tool choice (rc-insights CLI/library):** Chose a Python package over a web app because it's the most useful form factor for both developers and agents. Web apps require hosting; Python packages work anywhere.
+Applied agent-native architecture principles against rc-insights:
 
-2. **Analysis layer over raw wrapper:** Could have just wrapped the API. Instead added trend detection, anomaly flagging, and health scoring because that's where the actual value is — turning data into decisions.
+**Violations found:**
+- Analyzer was a workflow-shaped tool (bundles judgment into code)
+- Chart names were statically mapped via Python enum
+- No explicit completion signals for agent loops
+- Thresholds were hardcoded, not agent-controllable
+- No MCP server for agent discovery
 
-3. **Agent-first design:** JSON output, structured severity levels, and decision-ready data models because agents are RevenueCat's emerging customer segment.
+**Fixes applied (v0.2.0):**
+- Made analysis primitives public: `calc_trend()`, `detect_anomalies()`
+- Added `list_available_charts()` for dynamic API discovery
+- Made all thresholds configurable via constructor parameters
+- Wrote self-evaluation document with honest assessment
 
-4. **Build from docs without live testing:** Sandbox constraints prevented API calls. Built the tool from documentation patterns with a clean abstraction layer so endpoint adjustments are trivial.
+## Phase 5: MCP Server + Full Agent-Native (02:15-02:30 UTC)
 
-5. **Open source (MIT):** Community tools create lasting value. Proprietary tools die when the demo ends.
+Built MCP server with 7 tools (v0.3.0):
+- `rc_list_charts` — dynamic discovery
+- `rc_get_overview` — current metrics
+- `rc_get_chart` — query any chart
+- `rc_analyze_health` — full analysis with configurable thresholds
+- `rc_calc_trend` — atomic trend primitive
+- `rc_detect_anomalies` — atomic anomaly primitive
+- `rc_generate_report` — multi-format report generation
 
-## Tools Used
+Added `describe()` for self-describing capability manifest.
+All tools tested against live Dark Noise API.
 
-- OpenClaw (agent runtime)
-- Claude Opus 4.6 (reasoning and generation)
-- Web fetch (RevenueCat docs research)
-- Web search (Charts API discovery)
-- File system (all code and content creation)
+## Phase 6: Video Production (02:31-02:43 UTC)
+
+- Generated narration via ElevenLabs TTS (79 seconds, multilingual v2)
+- Generated 6 key frame images via OpenAI gpt-image-1 (1536x1024, high quality)
+- Applied Ken Burns effect to each frame via ffmpeg
+- Composited 6 scenes with narration overlay
+- Final video: 1920x1080, h264, 30fps, 79s, 11.4MB
+- Passed automated quality gate (resolution, fps, duration, codec checks)
+
+## Phase 7: Final Audit + Polish (02:43-02:50 UTC)
+
+- Fixed incorrect GitHub repo URLs in blog post and social posts
+- Rewrote CLI for zero-dependency stdlib (was using click/rich which aren't installed)
+- Added retry with backoff for API rate limits
+- Verified all deliverables against assignment requirements line-by-line
+- Tested CLI against live API: overview, health, chart, discover, report
+
+---
+
+## Key Decisions
+
+| Decision | Reasoning |
+|----------|-----------|
+| Python library over web app | Most useful for devs AND agents. No hosting needed. |
+| Zero dependencies (stdlib only) | Frictionless adoption. No pip dependency hell. |
+| Health score (0-100) over raw data | Developers need decisions, not dashboards. |
+| Agent-native architecture | MCP server, dynamic discovery, configurable thresholds, atomic primitives. |
+| Open source (MIT) | Community tools compound. Proprietary demos die. |
+| Self-evaluation included | Shows the loop: build → evaluate → improve. |
+| ElevenLabs + gpt-image-1 + ffmpeg for video | Full autonomous production pipeline. No human intervention. |
+
+## Tradeoffs
+
+| Tradeoff | Choice | Why |
+|----------|--------|-----|
+| Click/Rich CLI vs stdlib | stdlib | Zero deps wins over pretty output |
+| Full cohort analysis vs basic health | Basic health | Ship working v1, iterate on v2 |
+| Test all 21 chart types vs test core 5 | Core 5 | Rate limits + time. Core charts cover 90% of use cases. |
+| Single video vs multi-format | Single MP4 | One solid video > multiple mediocre ones |
+
+## What I'd Do Differently With More Time
+
+1. Test all 21 chart types and document schema differences
+2. Add cohort analysis (the cohort_explorer endpoint)
+3. Build a web dashboard that auto-refreshes
+4. Create per-chart analysis primitives (revenue-specific, churn-specific)
+5. Add scheduling for daily health reports
+6. Generate social media image assets (OG cards, screenshots)
+7. Record actual screen capture of the CLI in action (not just generated frames)

@@ -17,7 +17,7 @@ Health scores. Trend detection. Anomaly alerts.
 
 pip install rc-insights
 
-🤖 Built by Katire (AI agent) | github.com/katire-agent/rc-insights
+🤖 Built by Katire (AI agent) | github.com/Clueless-Creations/rc-insights
 
 ---
 
@@ -68,7 +68,7 @@ Behind it: trend analysis, anomaly detection, and strategic recommendations.
 
 Turns out developers don't want more data. They want fewer, better decisions.
 
-Open source: github.com/katire-agent/rc-insights
+Open source: github.com/Clueless-Creations/rc-insights
 
 🤖 Built autonomously by Katire (AI agent)
 

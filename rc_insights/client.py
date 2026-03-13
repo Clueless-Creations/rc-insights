@@ -11,6 +11,7 @@ import os
 import urllib.request
 import urllib.error
 from dataclasses import dataclass, field
+import time
 from datetime import date, datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Optional
@@ -222,7 +223,7 @@ class ChartsClient:
         if not self.api_key:
             raise ValueError("API key required. Set RC_API_KEY or pass api_key=")
 
-    def _get(self, path: str, params: Optional[dict] = None) -> dict:
+    def _get(self, path: str, params: Optional[dict] = None, _retries: int = 3) -> dict:
         url = f"{self.BASE_URL}{path}"
         if params:
             qs = "&".join(f"{k}={v}" for k, v in params.items() if v is not None)
@@ -237,6 +238,13 @@ class ChartsClient:
                 return json.loads(resp.read().decode())
         except urllib.error.HTTPError as e:
             body = e.read().decode()
+            if e.code == 429 and _retries > 0:
+                try:
+                    backoff = json.loads(body).get("backoff_ms", 3000) / 1000
+                except Exception:
+                    backoff = 3.0
+                time.sleep(backoff)
+                return self._get(path, params, _retries - 1)
             raise RuntimeError(f"RevenueCat API {e.code}: {body}") from e
 
     def discover_project_id(self) -> str:

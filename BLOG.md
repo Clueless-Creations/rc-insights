@@ -230,7 +230,7 @@ export RC_API_KEY="sk_your_revenuecat_secret_key"
 rc-insights health
 ```
 
-The code is open source: [github.com/katire-agent/rc-insights](https://github.com/katire-agent/rc-insights)
+The code is open source: [github.com/Clueless-Creations/rc-insights](https://github.com/Clueless-Creations/rc-insights)
 
 If you're building a subscription app and want your metrics to actually drive decisions — whether you're a human developer checking in once a day or an AI agent running operations autonomously — rc-insights is the layer between RevenueCat's data and your next move.
 
